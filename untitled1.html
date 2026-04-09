@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>p5.js 百花交错飘动动画</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #111; /* 网页背景深灰 */
+            overflow: hidden;
+        }
+        canvas {
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+    </style>
+    <!-- 引入 p5.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+</head>
+<body>
+
+<script>
+    let flowers = [];
+    const numFlowers = 60; // 花朵数量
+
+    function setup() {
+        createCanvas(600, 400);
+        colorMode(HSB, 360, 100, 100, 100);
+        
+        // 初始化花朵
+        for (let i = 0; i < numFlowers; i++) {
+            flowers.push(new Flower());
+        }
+    }
+
+    function draw() {
+        background(0); // 黑色背景
+        
+        // 更新并绘制所有花朵
+        for (let f of flowers) {
+            f.update();
+            f.display();
+        }
+    }
+
+    class Flower {
+        constructor() {
+            this.reset(true);
+        }
+
+        // 重置花朵位置和属性
+        // randomY: 是否在初始化时随机分布在整个屏幕高度
+        reset(randomY = false) {
+            this.x = random(width);
+            // 如果是初始化，随机Y；如果是重置，从底部出现
+            this.y = randomY ? random(height) : height + 50;
+            
+            this.size = random(15, 35); // 花朵大小
+            this.speedY = random(0.5, 1.5); // 向上漂浮速度
+            this.speedX = random(-0.5, 0.5); // 横向漂移速度
+            
+            // 摆动参数
+            this.angle = random(TWO_PI); // 当前旋转角度
+            this.spinSpeed = random(-0.02, 0.02); // 自转速度
+            this.swayOffset = random(1000); // 摆动偏移量，确保每朵花摆动不同步
+            this.swaySpeed = random(0.02, 0.05); // 摆动频率
+            
+            // 颜色：随机色相，高饱和度
+            this.hue = random(360);
+            this.petals = floor(random(5, 9)); // 花瓣数量 5-8
+        }
+
+        update() {
+            // 向上移动
+            this.y -= this.speedY;
+            
+            // 横向正弦摆动 (模拟风吹)
+            let sway = sin(frameCount * this.swaySpeed + this.swayOffset) * 1.5;
+            this.x += this.speedX + sway;
+            
+            // 自转
+            this.angle += this.spinSpeed;
+
+            // 边界检查：如果超出顶部或左右太远，重置到底部
+            if (this.y < -50 || this.x < -100 || this.x > width + 100) {
+                this.reset(false);
+            }
+        }
+
+        display() {
+            push();
+            translate(this.x, this.y);
+            rotate(this.angle);
+            
+            noStroke();
+            
+            // 绘制花瓣
+            fill(this.hue, 70, 90, 80); // 半透明花瓣
+            for (let i = 0; i < this.petals; i++) {
+                rotate(TWO_PI / this.petals);
+                ellipse(0, this.size / 2, this.size / 2, this.size);
+            }
+            
+            // 绘制花蕊
+            fill((this.hue + 180) % 360, 80, 100); // 互补色花蕊
+            ellipse(0, 0, this.size / 3, this.size / 3);
+            
+            pop();
+        }
+    }
+</script>
+
+</body>
+</html>
